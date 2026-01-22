@@ -1,296 +1,445 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Jog Weather Checker</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        background-color: #050505;
+        color: #f5f5f5;
+      }
+
+      .weather-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        background-color: #050505;
+      }
+
+      .sunny {
+        background-color: #111111;
+      }
+
+      .cloudy {
+        background-color: #101010;
+      }
+
+      .rainy {
+        background-color: #080808;
+      }
+
+      .snowy {
+        background-color: #141414;
+      }
+
+      .container {
+        text-align: center;
+        padding: 48px 60px;
+        max-width: 720px;
+      }
+
+      .verdict {
+        font-size: 56px;
+        font-weight: 700;
+        margin-bottom: 24px;
+        letter-spacing: 0.18em;
+      }
+
+      .verdict.good {
+        color: #ff9500;
+      }
+
+      .verdict.bad {
+        color: #ff4b4b;
+      }
+
+      .message {
+        font-size: 28px;
+        margin-bottom: 20px;
+        color: #f5f5f5;
+      }
+
+      .weather-info {
+        font-size: 18px;
+        color: #b3b3b3;
+        margin-top: 28px;
+      }
+
+      .weather-info strong {
+        color: #ff9500;
+      }
+
+      .emoji {
+        font-size: 80px;
+        margin-bottom: 16px;
+      }
+
+      .loading {
+        font-size: 28px;
+        color: #f5f5f5;
+      }
+
+      .rain,
+      .snow {
+        display: none;
+      }
+
+      .debug-panel {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        display: none;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: #888;
+      }
+
+      .debug-label {
+        padding: 4px 8px;
+        border: 1px solid #333;
+        background-color: #050505;
+      }
+
+      .debug-button {
+        padding: 6px 10px;
+        border: 1px solid #ff9500;
+        background-color: transparent;
+        color: #ff9500;
+        font-size: 11px;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+      }
+
+      .debug-button:hover {
+        background-color: #ff9500;
+        color: #050505;
+      }
+
+      @media (max-width: 600px) {
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            transition: background 1s ease;
-        }
-
-        .weather-bg {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-        }
-
-        .sunny {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        .cloudy {
-            background: linear-gradient(135deg, #bdc3c7 0%, #2c3e50 100%);
-        }
-
-        .rainy {
-            background: linear-gradient(135deg, #434343 0%, #000000 100%);
-        }
-
-        .snowy {
-            background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+          padding: 20px;
+          overflow: auto;
         }
 
         .container {
-            text-align: center;
-            padding: 60px;
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            border-radius: 30px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            max-width: 800px;
-            animation: fadeIn 1s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .verdict {
-            font-size: 72px;
-            font-weight: bold;
-            margin-bottom: 30px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        .verdict.good {
-            color: #00ff88;
-            animation: pulse 2s infinite;
-        }
-
-        .verdict.bad {
-            color: #ff4444;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        .message {
-            font-size: 36px;
-            margin-bottom: 20px;
-            color: white;
-            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
-        }
-
-        .weather-info {
-            font-size: 24px;
-            color: rgba(255, 255, 255, 0.9);
-            margin-top: 30px;
+          padding: 28px 20px;
+          max-width: 100%;
+          border-radius: 0;
         }
 
         .emoji {
-            font-size: 100px;
-            margin-bottom: 20px;
+          font-size: 60px;
+          margin-bottom: 10px;
+        }
+
+        .verdict {
+          font-size: 32px;
+          margin-bottom: 18px;
+          letter-spacing: 0.14em;
+        }
+
+        .message {
+          font-size: 20px;
+          margin-bottom: 14px;
+        }
+
+        .weather-info {
+          font-size: 14px;
+          margin-top: 18px;
         }
 
         .loading {
-            font-size: 32px;
-            color: white;
+          font-size: 22px;
         }
-
-        .rain {
-            position: absolute;
-            width: 2px;
-            height: 50px;
-            background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.6));
-            animation: fall linear infinite;
-        }
-
-        @keyframes fall {
-            to { transform: translateY(100vh); }
-        }
-
-        .snow {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background: white;
-            border-radius: 50%;
-            animation: snowfall linear infinite;
-        }
-
-        @keyframes snowfall {
-            to { transform: translateY(100vh) rotate(360deg); }
-        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="weather-bg" id="weatherBg"></div>
     <div class="container">
-        <div class="loading" id="loading">Checking weather...</div>
-        <div id="content" style="display: none;">
-            <div class="emoji" id="emoji"></div>
-            <div class="verdict" id="verdict"></div>
-            <div class="message" id="message"></div>
-            <div class="weather-info" id="weatherInfo"></div>
-        </div>
+      <div class="loading" id="loading">Checking weather...</div>
+      <div class="debug-panel" id="debugPanel">
+        <span class="debug-label">Debug</span>
+        <button class="debug-button" id="debugNext">Next Scenario</button>
+      </div>
+      <div id="content" style="display: none">
+        <div class="emoji" id="emoji"></div>
+        <div class="verdict" id="verdict"></div>
+        <div class="message" id="message"></div>
+        <div class="weather-info" id="weatherInfo"></div>
+      </div>
     </div>
-
     <script>
-        async function checkWeather() {
-            try {
-                // Get user's location
-                const position = await new Promise((resolve, reject) => {
-                    if (!navigator.geolocation) {
-                        reject(new Error('Geolocation is not supported by your browser'));
-                    }
-                    navigator.geolocation.getCurrentPosition(resolve, reject, {
-                        timeout: 10000,
-                        enableHighAccuracy: true
-                    });
-                });
+      const isLocalhost = ["localhost", "127.0.0.1", "::1"].includes(
+        window.location.hostname,
+      );
 
-                const lat = position.coords.latitude;
-                const lon = position.coords.longitude;
+      let debugScenarioIndex = 0;
 
-                const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,precipitation,weather_code,wind_speed_10m&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto`);
-                const data = await response.json();
-                
-                const temp = data.current.temperature_2m;
-                const precipitation = data.current.precipitation;
-                const weatherCode = data.current.weather_code;
-                const windSpeed = data.current.wind_speed_10m;
-                const currentTime = new Date(data.current.time);
-                
-                let isGood = true;
-                let reason = '';
-                let emoji = '🏃‍♂️';
-                let bgClass = 'sunny';
-                
-                if (temp < 32) {
-                    isGood = false;
-                    reason = "It's too cold! Bundle up and stay cozy.";
-                    emoji = '🥶';
-                    bgClass = 'snowy';
-                    createSnow();
-                } else if (temp > 90) {
-                    isGood = false;
-                    reason = "It's too hot! Stay hydrated indoors.";
-                    emoji = '🥵';
-                    bgClass = 'sunny';
-                } else if (temp < 45 && windSpeed > 15) {
-                    isGood = false;
-                    reason = "Too cold and windy! Wind chill will be brutal.";
-                    emoji = '💨';
-                    bgClass = 'cloudy';
-                } else if (precipitation > 0.1) {
-                    isGood = false;
-                    reason = "It's raining! Maybe try a treadmill?";
-                    emoji = '🌧️';
-                    bgClass = 'rainy';
-                    createRain();
-                } else if (weatherCode >= 71 && weatherCode <= 77) {
-                    isGood = false;
-                    reason = "It's snowing! Hot cocoa weather!";
-                    emoji = '❄️';
-                    bgClass = 'snowy';
-                    createSnow();
-                } else {
-                    reason = "Perfect weather for a run! Let's go!";
-                    emoji = '✨';
-                    if (weatherCode >= 2 && weatherCode <= 3) {
-                        bgClass = 'cloudy';
-                    }
-                }
-                
-                document.getElementById('weatherBg').className = 'weather-bg ' + bgClass;
-                document.getElementById('emoji').textContent = emoji;
-                document.getElementById('verdict').textContent = isGood ? 'GO FOR IT!' : 'NOT TODAY';
-                document.getElementById('verdict').className = 'verdict ' + (isGood ? 'good' : 'bad');
-                document.getElementById('message').textContent = reason;
-                
-                const dateStr = currentTime.toLocaleDateString('en-US', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                });
-                const timeStr = currentTime.toLocaleTimeString('en-US', { 
-                    hour: 'numeric', 
-                    minute: '2-digit',
-                    hour12: true
-                });
-                
-                document.getElementById('weatherInfo').innerHTML = `
-                    <div style="margin-bottom: 10px;"><strong>${dateStr}</strong></div>
+      const debugScenarios = [
+        {
+          label: "Perfect run",
+          temp: 60,
+          precipitation: 0,
+          weatherCode: 1,
+          windSpeed: 5,
+        },
+        {
+          label: "Too cold",
+          temp: 25,
+          precipitation: 0,
+          weatherCode: 71,
+          windSpeed: 5,
+        },
+        {
+          label: "Too hot",
+          temp: 95,
+          precipitation: 0,
+          weatherCode: 1,
+          windSpeed: 3,
+        },
+        {
+          label: "Cold & windy",
+          temp: 40,
+          precipitation: 0,
+          weatherCode: 2,
+          windSpeed: 20,
+        },
+        {
+          label: "Rainy",
+          temp: 65,
+          precipitation: 0.5,
+          weatherCode: 61,
+          windSpeed: 10,
+        },
+        {
+          label: "Snowing",
+          temp: 30,
+          precipitation: 0.2,
+          weatherCode: 73,
+          windSpeed: 8,
+        },
+      ];
+
+      function renderFromConditions(
+        temp,
+        precipitation,
+        weatherCode,
+        windSpeed,
+        currentTime,
+        debugLabel,
+      ) {
+        let isGood = true;
+        let reason = "";
+        let emoji = "🏃‍♂️";
+        let bgClass = "sunny";
+
+        if (temp < 32) {
+          isGood = false;
+          reason = "It's too cold! Bundle up and stay cozy.";
+          emoji = "🥶";
+          bgClass = "snowy";
+          createSnow();
+        } else if (temp > 90) {
+          isGood = false;
+          reason = "It's too hot! Stay hydrated indoors.";
+          emoji = "🥵";
+          bgClass = "sunny";
+        } else if (temp < 45 && windSpeed > 15) {
+          isGood = false;
+          reason = "Too cold and windy! Wind chill will be brutal.";
+          emoji = "💨";
+          bgClass = "cloudy";
+        } else if (precipitation > 0.1) {
+          isGood = false;
+          reason = "It's raining! Maybe try a treadmill?";
+          emoji = "🌧️";
+          bgClass = "rainy";
+          createRain();
+        } else if (weatherCode >= 71 && weatherCode <= 77) {
+          isGood = false;
+          reason = "It's snowing! Hot cocoa weather!";
+          emoji = "❄️";
+          bgClass = "snowy";
+          createSnow();
+        } else {
+          reason = "Perfect weather for a run! Let's go!";
+          emoji = "✨";
+          if (weatherCode >= 2 && weatherCode <= 3) {
+            bgClass = "cloudy";
+          }
+        }
+
+        document.getElementById("weatherBg").className =
+          "weather-bg " + bgClass;
+        document.getElementById("emoji").textContent = emoji;
+        document.getElementById("verdict").textContent = isGood
+          ? "GO FOR IT!"
+          : "NOT TODAY";
+        document.getElementById("verdict").className =
+          "verdict " + (isGood ? "good" : "bad");
+        document.getElementById("message").textContent = reason;
+
+        const dateStr = currentTime.toLocaleDateString("en-US", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+        const timeStr = currentTime.toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        });
+
+        const debugSuffix = debugLabel
+          ? ` <span style="color:#555; text-transform:uppercase; letter-spacing:0.12em; font-size:11px;">[${debugLabel}]</span>`
+          : "";
+
+        document.getElementById("weatherInfo").innerHTML = `
+                    <div style="margin-bottom: 10px;"><strong>${dateStr}</strong>${debugSuffix}</div>
                     <div style="margin-bottom: 10px;">${timeStr}</div>
                     <div>Temperature: ${temp}°F | Wind: ${windSpeed} mph</div>
                 `;
-                
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('content').style.display = 'block';
-                
-            } catch (error) {
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('content').style.display = 'block';
-                
-                let errorMessage = 'Could not fetch weather. Please try again!';
-                let errorEmoji = '⚠️';
-                
-                if (error.code === 1) {
-                    errorMessage = 'Location permission denied. Please enable location access to check the weather for your area.';
-                    errorEmoji = '📍';
-                } else if (error.code === 2) {
-                    errorMessage = 'Location unavailable. Please check your device settings.';
-                    errorEmoji = '🌍';
-                } else if (error.code === 3) {
-                    errorMessage = 'Location request timed out. Please try again.';
-                    errorEmoji = '⏱️';
-                } else if (error.message && error.message.includes('Geolocation')) {
-                    errorMessage = 'Geolocation is not supported by your browser.';
-                    errorEmoji = '🚫';
-                }
-                
-                document.getElementById('emoji').textContent = errorEmoji;
-                document.getElementById('verdict').textContent = 'OOPS!';
-                document.getElementById('verdict').className = 'verdict bad';
-                document.getElementById('message').textContent = errorMessage;
-                document.getElementById('weatherInfo').textContent = 'Please refresh the page and allow location access.';
-                document.getElementById('weatherBg').className = 'weather-bg cloudy';
-            }
-        }
 
-        function createRain() {
-            for (let i = 0; i < 50; i++) {
-                const drop = document.createElement('div');
-                drop.className = 'rain';
-                drop.style.left = Math.random() * 100 + '%';
-                drop.style.animationDuration = (Math.random() * 0.5 + 0.5) + 's';
-                drop.style.animationDelay = Math.random() * 2 + 's';
-                document.getElementById('weatherBg').appendChild(drop);
-            }
-        }
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("content").style.display = "block";
+      }
 
-        function createSnow() {
-            for (let i = 0; i < 30; i++) {
-                const flake = document.createElement('div');
-                flake.className = 'snow';
-                flake.style.left = Math.random() * 100 + '%';
-                flake.style.animationDuration = (Math.random() * 3 + 2) + 's';
-                flake.style.animationDelay = Math.random() * 3 + 's';
-                document.getElementById('weatherBg').appendChild(flake);
+      async function checkWeather() {
+        try {
+          // Get user's location
+          const position = await new Promise((resolve, reject) => {
+            if (!navigator.geolocation) {
+              reject(new Error("Geolocation is not supported by your browser"));
             }
-        }
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              timeout: 10000,
+              enableHighAccuracy: true,
+            });
+          });
 
-        checkWeather();
+          const lat = position.coords.latitude;''
+          const lon = position.coords.longitude;
+
+          const response = await fetch(
+            `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,precipitation,weather_code,wind_speed_10m&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto`,
+          );
+          const data = await response.json();
+
+          const temp = data.current.temperature_2m;
+          const precipitation = data.current.precipitation;
+          const weatherCode = data.current.weather_code;
+          const windSpeed = data.current.wind_speed_10m;
+          const currentTime = new Date(data.current.time);
+
+          renderFromConditions(
+            temp,
+            precipitation,
+            weatherCode,
+            windSpeed,
+            currentTime,
+          );
+        } catch (error) {
+          document.getElementById("loading").style.display = "none";
+          document.getElementById("content").style.display = "block";
+
+          let errorMessage = "Could not fetch weather. Please try again!";
+          let errorEmoji = "⚠️";
+
+          if (error.code === 1) {
+            errorMessage =
+              "Location permission denied. Please enable location access to check the weather for your area.";
+            errorEmoji = "📍";
+          } else if (error.code === 2) {
+            errorMessage =
+              "Location unavailable. Please check your device settings.";
+            errorEmoji = "🌍";
+          } else if (error.code === 3) {
+            errorMessage = "Location request timed out. Please try again.";
+            errorEmoji = "⏱️";
+          } else if (error.message && error.message.includes("Geolocation")) {
+            errorMessage = "Geolocation is not supported by your browser.";
+            errorEmoji = "🚫";
+          }
+
+          document.getElementById("emoji").textContent = errorEmoji;
+          document.getElementById("verdict").textContent = "OOPS!";
+          document.getElementById("verdict").className = "verdict bad";
+          document.getElementById("message").textContent = errorMessage;
+          document.getElementById("weatherInfo").textContent =
+            "Please refresh the page and allow location access.";
+          document.getElementById("weatherBg").className = "weather-bg cloudy";
+        }
+      }
+
+      function debugNextScenario() {
+        const scenario = debugScenarios[debugScenarioIndex];
+        debugScenarioIndex = (debugScenarioIndex + 1) % debugScenarios.length;
+
+        const now = new Date();
+        renderFromConditions(
+          scenario.temp,
+          scenario.precipitation,
+          scenario.weatherCode,
+          scenario.windSpeed,
+          now,
+          scenario.label,
+        );
+      }
+
+      function createRain() {
+        for (let i = 0; i < 50; i++) {
+          const drop = document.createElement("div");
+          drop.className = "rain";
+          drop.style.left = Math.random() * 100 + "%";
+          drop.style.animationDuration = Math.random() * 0.5 + 0.5 + "s";
+          drop.style.animationDelay = Math.random() * 2 + "s";
+          document.getElementById("weatherBg").appendChild(drop);
+        }
+      }
+
+      function createSnow() {
+        for (let i = 0; i < 30; i++) {
+          const flake = document.createElement("div");
+          flake.className = "snow";
+          flake.style.left = Math.random() * 100 + "%";
+          flake.style.animationDuration = Math.random() * 3 + 2 + "s";
+          flake.style.animationDelay = Math.random() * 3 + "s";
+          document.getElementById("weatherBg").appendChild(flake);
+        }
+      }
+
+      if (isLocalhost) {
+        const debugPanel = document.getElementById("debugPanel");
+        const debugNextButton = document.getElementById("debugNext");
+        if (debugPanel && debugNextButton) {
+          debugPanel.style.display = "flex";
+          debugNextButton.addEventListener("click", debugNextScenario);
+        }
+      }
+
+      checkWeather();
     </script>
-</body>
+  </body>
 </html>
