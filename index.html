@@ -30,6 +30,10 @@
         height: 100%;
         z-index: -1;
         background-color: #050505;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        /* background-blend-mode: multiply; */
       }
 
       .sunny {
@@ -48,9 +52,15 @@
         background-color: #141414;
       }
 
+      .hot {
+        background-color: #1a0903;
+      }
+
       .container {
         text-align: center;
         padding: 48px 60px;
+        background-color: rgba(5, 5, 5, 0.88);
+        border: 1px solid #262626;
         max-width: 720px;
       }
 
@@ -194,6 +204,19 @@
         window.location.hostname,
       );
 
+      const backgroundImages = {
+        sunny:
+          'url("https://images.unsplash.com/photo-1599117573949-63e225331c7b?auto=format&fit=crop&w=1600&q=80")',
+        cloudy:
+          'url("https://images.unsplash.com/photo-1505672678657-cc7037095e60?auto=format&fit=crop&w=1600&q=80")',
+        rainy:
+          'url("https://images.unsplash.com/photo-1611738740585-3598e06e0f8c?auto=format&fit=crop&w=1600&q=80")',
+        snowy:
+          'url("https://images.unsplash.com/photo-1618540026004-004ada8c8344?auto=format&fit=crop&w=1600&q=80")',
+        hot:
+          'url("https://images.unsplash.com/photo-1580730680351-272678cd3537?auto=format&fit=crop&w=1600&q=80")',
+      };
+
       let debugScenarioIndex = 0;
 
       const debugScenarios = [
@@ -264,7 +287,7 @@
           isGood = false;
           reason = "It's too hot! Stay hydrated indoors.";
           emoji = "🥵";
-          bgClass = "sunny";
+          bgClass = "hot";
         } else if (temp < 45 && windSpeed > 15) {
           isGood = false;
           reason = "Too cold and windy! Wind chill will be brutal.";
@@ -290,8 +313,9 @@
           }
         }
 
-        document.getElementById("weatherBg").className =
-          "weather-bg " + bgClass;
+        const weatherBg = document.getElementById("weatherBg");
+        weatherBg.className = "weather-bg " + bgClass;
+        weatherBg.style.backgroundImage = backgroundImages[bgClass] || "";
         document.getElementById("emoji").textContent = emoji;
         document.getElementById("verdict").textContent = isGood
           ? "GO FOR IT!"
@@ -313,7 +337,7 @@
         });
 
         const debugSuffix = debugLabel
-          ? ` <span style="color:#555; text-transform:uppercase; letter-spacing:0.12em; font-size:11px;">[${debugLabel}]</span>`
+          ? ` <span style="color:#CCC; text-transform:uppercase; letter-spacing:0.12em; font-size:11px;">[${debugLabel}]</span>`
           : "";
 
         document.getElementById("weatherInfo").innerHTML = `
