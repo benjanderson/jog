@@ -33,7 +33,6 @@
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
-        /* background-blend-mode: multiply; */
       }
 
       .sunny {
@@ -277,7 +276,7 @@
         let emoji = "🏃‍♂️";
         let bgClass = "sunny";
 
-        if (temp < 32) {
+        if (temp < 45) {
           isGood = false;
           reason = "It's too cold! Bundle up and stay cozy.";
           emoji = "🥶";
@@ -288,7 +287,7 @@
           reason = "It's too hot! Stay hydrated indoors.";
           emoji = "🥵";
           bgClass = "hot";
-        } else if (temp < 45 && windSpeed > 15) {
+        } else if (temp < 55 && windSpeed > 15) {
           isGood = false;
           reason = "Too cold and windy! Wind chill will be brutal.";
           emoji = "💨";
