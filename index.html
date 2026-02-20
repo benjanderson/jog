@@ -104,9 +104,192 @@
         color: #f5f5f5;
       }
 
-      .rain,
+      /* Weather Animations */
       .snow {
-        display: none;
+        position: absolute;
+        color: #fff;
+        font-size: 1em;
+        opacity: 0.8;
+        animation: snowfall linear infinite;
+        pointer-events: none;
+      }
+
+      @keyframes snowfall {
+        0% {
+          top: -10%;
+          opacity: 0.8;
+        }
+        100% {
+          top: 110%;
+          opacity: 0.3;
+        }
+      }
+
+      .rain {
+        position: absolute;
+        width: 2px;
+        height: 50px;
+        background: linear-gradient(
+          to bottom,
+          rgba(174, 194, 224, 0.1),
+          rgba(174, 194, 224, 0.6)
+        );
+        animation: rainfall linear infinite;
+        pointer-events: none;
+      }
+
+      @keyframes rainfall {
+        0% {
+          top: -10%;
+          opacity: 0.8;
+        }
+        100% {
+          top: 110%;
+          opacity: 0.3;
+        }
+      }
+
+      .lens-flare {
+        position: absolute;
+        border-radius: 50%;
+        pointer-events: none;
+        animation: flare 6s ease-in-out infinite;
+      }
+
+      @keyframes flare {
+        0%,
+        100% {
+          opacity: 0.6;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.9;
+          transform: scale(1.3);
+        }
+      }
+
+      .wind-debris {
+        position: absolute;
+        font-size: 1.5em;
+        opacity: 0.7;
+        animation: windBlow linear infinite;
+        pointer-events: none;
+      }
+
+      @keyframes windBlow {
+        0% {
+          left: -5%;
+          transform: translateY(0) rotate(0deg);
+          opacity: 0.7;
+        }
+        50% {
+          transform: translateY(-30px) rotate(180deg);
+          opacity: 0.6;
+        }
+        100% {
+          left: 105%;
+          transform: translateY(0) rotate(360deg);
+          opacity: 0.3;
+        }
+      }
+
+      .heat-wave {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: repeating-linear-gradient(
+          90deg,
+          rgba(255, 149, 0, 0.8) 0px,
+          rgba(255, 200, 100, 0.6) 10px,
+          rgba(255, 149, 0, 0.8) 20px
+        );
+        animation: heatWave 2s linear infinite;
+        pointer-events: none;
+        filter: blur(2px);
+      }
+
+      @keyframes heatWave {
+        0% {
+          transform: translateX(0) scaleY(1);
+        }
+        100% {
+          transform: translateX(-20px) scaleY(1);
+        }
+      }
+
+      .mirage-layer {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        overflow: hidden;
+      }
+
+      .heat-distortion-line {
+        position: absolute;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 180, 120, 0.6),
+          transparent
+        );
+        animation: distortionRise linear infinite;
+        pointer-events: none;
+        filter: blur(1px);
+      }
+
+      @keyframes distortionRise {
+        0% {
+          bottom: 0;
+          opacity: 0.8;
+          transform: scaleX(1) translateX(0);
+        }
+        50% {
+          opacity: 0.6;
+          transform: scaleX(1.2) translateX(20px);
+        }
+        100% {
+          bottom: 100%;
+          opacity: 0;
+          transform: scaleX(0.8) translateX(-20px);
+        }
+      }
+
+      .heat-particle {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: radial-gradient(
+          circle,
+          rgba(255, 180, 80, 1),
+          rgba(255, 120, 0, 0.8)
+        );
+        animation: particleRise linear infinite;
+        pointer-events: none;
+        filter: blur(3px);
+        box-shadow: 0 0 10px rgba(255, 149, 0, 0.8);
+      }
+
+      @keyframes particleRise {
+        0% {
+          bottom: 0;
+          opacity: 0.9;
+          transform: scale(1) translateX(0);
+        }
+        50% {
+          opacity: 0.6;
+          transform: scale(1.5) translateX(var(--drift, 10px));
+        }
+        100% {
+          bottom: 100%;
+          opacity: 0;
+          transform: scale(0.5) translateX(var(--drift, 10px));
+        }
       }
 
       .debug-panel {
@@ -220,21 +403,21 @@
 
       const debugScenarios = [
         {
-          label: "Perfect run",
+          label: "Perfect & sunny",
           temp: 60,
           precipitation: 0,
           weatherCode: 1,
           windSpeed: 5,
         },
         {
-          label: "Too cold",
-          temp: 25,
+          label: "Freezing & snowy",
+          temp: 28,
           precipitation: 0,
           weatherCode: 71,
           windSpeed: 5,
         },
         {
-          label: "Too hot",
+          label: "Hot desert",
           temp: 95,
           precipitation: 0,
           weatherCode: 1,
@@ -255,7 +438,7 @@
           windSpeed: 10,
         },
         {
-          label: "Snowing",
+          label: "Heavy snow",
           temp: 30,
           precipitation: 0.2,
           weatherCode: 73,
@@ -271,27 +454,36 @@
         currentTime,
         debugLabel,
       ) {
+        clearWeatherEffects();
+
         let isGood = true;
         let reason = "";
         let emoji = "🏃‍♂️";
         let bgClass = "sunny";
 
-        if (temp < 45) {
+        if (temp < 32) {
           isGood = false;
-          reason = "It's too cold! Bundle up and stay cozy.";
+          reason = "It's freezing! Bundle up and stay cozy.";
           emoji = "🥶";
           bgClass = "snowy";
           createSnow();
-        } else if (temp > 90) {
-          isGood = false;
-          reason = "It's too hot! Stay hydrated indoors.";
-          emoji = "🥵";
-          bgClass = "hot";
         } else if (temp < 55 && windSpeed > 15) {
           isGood = false;
           reason = "Too cold and windy! Wind chill will be brutal.";
           emoji = "💨";
           bgClass = "cloudy";
+          createWind();
+        } else if (temp < 45) {
+          isGood = false;
+          reason = "It's too cold! Bundle up and stay cozy.";
+          emoji = "🥶";
+          bgClass = "snowy";
+        } else if (temp > 90) {
+          isGood = false;
+          reason = "It's too hot! Stay hydrated indoors.";
+          emoji = "🥵";
+          bgClass = "hot";
+          createHeatMirage();
         } else if (precipitation > 0.1) {
           isGood = false;
           reason = "It's raining! Maybe try a treadmill?";
@@ -309,6 +501,8 @@
           emoji = "✨";
           if (weatherCode >= 2 && weatherCode <= 3) {
             bgClass = "cloudy";
+          } else if (weatherCode === 0 || weatherCode === 1) {
+            createLensFlare();
           }
         }
 
@@ -431,25 +625,106 @@
         );
       }
 
+      function clearWeatherEffects() {
+        const weatherBg = document.getElementById("weatherBg");
+        const effects = weatherBg.querySelectorAll(
+          ".rain, .snow, .lens-flare, .wind-debris, .heat-wave, .mirage-layer, .heat-distortion-line, .heat-particle",
+        );
+        effects.forEach((effect) => effect.remove());
+      }
+
       function createRain() {
-        for (let i = 0; i < 50; i++) {
+        const weatherBg = document.getElementById("weatherBg");
+        for (let i = 0; i < 80; i++) {
           const drop = document.createElement("div");
           drop.className = "rain";
           drop.style.left = Math.random() * 100 + "%";
-          drop.style.animationDuration = Math.random() * 0.5 + 0.5 + "s";
+          drop.style.animationDuration = Math.random() * 0.3 + 0.4 + "s";
           drop.style.animationDelay = Math.random() * 2 + "s";
-          document.getElementById("weatherBg").appendChild(drop);
+          weatherBg.appendChild(drop);
         }
       }
 
       function createSnow() {
-        for (let i = 0; i < 30; i++) {
+        const weatherBg = document.getElementById("weatherBg");
+        const snowflakes = ["❄", "❅", "❆"];
+        for (let i = 0; i < 40; i++) {
           const flake = document.createElement("div");
           flake.className = "snow";
+          flake.textContent =
+            snowflakes[Math.floor(Math.random() * snowflakes.length)];
           flake.style.left = Math.random() * 100 + "%";
+          flake.style.fontSize = Math.random() * 0.8 + 0.5 + "em";
           flake.style.animationDuration = Math.random() * 3 + 2 + "s";
           flake.style.animationDelay = Math.random() * 3 + "s";
-          document.getElementById("weatherBg").appendChild(flake);
+          weatherBg.appendChild(flake);
+        }
+      }
+
+      function createLensFlare() {
+        const weatherBg = document.getElementById("weatherBg");
+        const flareCount = 5;
+        const colors = [
+          "rgba(255, 200, 80, 0.7)",
+          "rgba(255, 180, 50, 0.6)",
+          "rgba(255, 220, 120, 0.65)",
+          "rgba(255, 160, 40, 0.5)",
+          "rgba(255, 240, 150, 0.55)",
+        ];
+
+        for (let i = 0; i < flareCount; i++) {
+          const flare = document.createElement("div");
+          flare.className = "lens-flare";
+          const size = Math.random() * 200 + 150;
+          flare.style.width = size + "px";
+          flare.style.height = size + "px";
+          flare.style.background = `radial-gradient(circle, ${colors[i]}, transparent 60%)`;
+          flare.style.top = Math.random() * 40 + "%";
+          flare.style.left = Math.random() * 40 + 5 + "%";
+          flare.style.animationDelay = i * 1.5 + "s";
+          flare.style.filter = "blur(20px)";
+          weatherBg.appendChild(flare);
+        }
+      }
+
+      function createWind() {
+        const weatherBg = document.getElementById("weatherBg");
+        const debris = ["🍃", "🍂", "💨", "🌿"];
+        for (let i = 0; i < 20; i++) {
+          const particle = document.createElement("div");
+          particle.className = "wind-debris";
+          particle.textContent =
+            debris[Math.floor(Math.random() * debris.length)];
+          particle.style.top = Math.random() * 80 + 10 + "%";
+          particle.style.animationDuration = Math.random() * 3 + 4 + "s";
+          particle.style.animationDelay = Math.random() * 2 + "s";
+          weatherBg.appendChild(particle);
+        }
+      }
+
+      function createHeatMirage() {
+        const weatherBg = document.getElementById("weatherBg");
+
+        // Create animated heat wave at bottom
+        const heatWave = document.createElement("div");
+        heatWave.className = "heat-wave";
+        weatherBg.appendChild(heatWave);
+
+        // Create container for all mirage effects
+        const mirageContainer = document.createElement("div");
+        mirageContainer.className = "mirage-layer";
+        weatherBg.appendChild(mirageContainer);
+
+        // Create rising heat particles
+        for (let i = 0; i < 100; i++) {
+          const particle = document.createElement("div");
+          particle.className = "heat-particle";
+          particle.style.left = Math.random() * 100 + "%";
+          particle.style.animationDuration = Math.random() * 3 + 2 + "s";
+          particle.style.animationDelay = Math.random() * 4 + "s";
+          const drift = (Math.random() - 0.5) * 40;
+          particle.style.setProperty("--drift", drift + "px");
+          mirageContainer.appendChild(particle);
         }
       }
 
